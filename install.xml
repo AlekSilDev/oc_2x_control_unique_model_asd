@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+	<name>Control Unique Model by AleksilDev</name>
+	<code>control_unique_model_asd</code>
+	<version>1.0.3 (OpenCart 2.3.x)</version>
+	<author>AleksilDev@gmail.com</author>
+	<!-- ADMIN CONTROLLER -->
+	<file path="admin/controller/catalog/product.php">
+		<operation>
+			<search><![CDATA[if ((utf8_strlen($this->request->post['model']) < 1) || (utf8_strlen($this->request->post['model']) > 64)) {]]></search>
+			<add position="before"><![CDATA[// Model Unique Control.Begin
+				
+				$this->request->post['model'] = trim($this->request->post['model']);
+				
+				if ($this->model_catalog_product->getProductModel(trim($this->request->post['model'])) && !isset($this->request->get['product_id'])) { 
+
+					$this->error['model'] = $this->language->get('error_model_unique');				  
+				}
+
+				if ($this->model_catalog_product->getProductModel($this->request->post['model']) && isset($this->request->get['product_id']) && ($this->model_catalog_product->getProductId(trim($this->request->post['model'])) !== $this->request->get['product_id'])) { 
+
+					$this->error['model'] = $this->language->get('error_model_unique');				  
+				}
+
+				if ((utf8_strlen(trim($this->request->post['model'])) < 1) || (utf8_strlen(trim($this->request->post['model'])) > 64) || (trim($this->request->post['model']) == '')) {
+
+					$this->error['model'] = $this->language->get('error_model');
+				}
+
+				// Model Unique Control.End]]></add>
+		</operation>
+		<operation>
+			<search><![CDATA[$data['help_keyword'] = $this->language->get('help_keyword');]]></search>
+			<add position="after"><![CDATA[// Model Unique Control.Begin
+				
+				$data['help_model'] = $this->language->get('help_model');
+
+			// Model Unique Control.End]]></add>
+		</operation>
+	</file>
+	<!-- ADMIN MODEL -->
+	<file path="admin/model/catalog/product.php">
+		<operation>
+			<search><![CDATA[class ModelCatalogProduct extends Model {]]></search>
+			<add position="after"><![CDATA[// Model Unique Control.Begin
+				
+				public function getProductModel($model) {
+                
+                		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "product WHERE model='".$this->db->escape($model)."'");
+                	
+                		return $query->num_rows;
+        		}
+
+        		public function getProductId($model) {
+                
+                		$query = $this->db->query("SELECT product_id FROM " . DB_PREFIX . "product WHERE model='".$this->db->escape($model)."'");
+
+                		return $query->row['product_id'];
+        		}
+
+			// Model Unique Control.End]]></add>
+		</operation>
+		<operation>
+			<search><![CDATA[public function addProduct($data) {]]></search>
+			<add position="after"><![CDATA[// Model Unique Control.Begin
+				
+				if (isset($data['model'])) {
+
+		 			$data['model'] = trim($data['model']);
+		 		}
+
+			// Model Unique Control.End]]></add>
+			<search><![CDATA[public function editProduct($product_id, $data) {]]></search>
+			<add position="after"><![CDATA[// Model Unique Control.Begin
+
+				if (isset($data['model'])) {
+
+		 			$data['model'] = trim($data['model']);
+		 		}
+
+			// Model Unique Control.End]]></add>
+		</operation>
+	</file>	
+	<!-- ADMIN LANGUAGE -->
+	<file path="admin/language/en-gb/catalog/product.php">
+		<operation>
+			<search><![CDATA[<?php]]></search>
+			<add position="after"><![CDATA[$_['error_model_unique']            = 'The Model already in use!';
+				$_['help_model']           = 'Make sure the Model is globally unique.';]]></add>
+		</operation>
+	</file>	
+	<!-- VIEW -->
+	<file path="admin/view/template/catalog/product_form.tpl">
+		<operation error="skip">
+			<search><![CDATA[<label class="col-sm-2 control-label" for="input-model"><?php echo $entry_model; ?></label>]]></search>
+			<add position="replace"><![CDATA[<label class="col-sm-2 control-label" for="input-model"><span data-toggle="tooltip" title="<?php echo $help_model; ?>"><?php echo $entry_model; ?></span></label>
+			<!-- <label class="col-sm-2 control-label" for="input-model"><?php echo $entry_model; ?></label> -->]]></add>
+		</operation>
+	</file>		
+</modification>
